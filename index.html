@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SmakCity — швидка доставка піци, суші, салатів та ханойської кухні по Одесі. Акція 2+1: купуй 2 піци — третя у подарунок! Безкоштовна доставка в радіусі 4 км." />
+  <title>SmakCity — Доставка їжі в Одесі 🍕🍣</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<header id="header">
+  <div class="header-inner">
+    <!-- Logo -->
+    <a href="#" class="logo" aria-label="SmakCity — головна">
+      <div class="logo-icon">🍕</div>
+      <div class="logo-text">Smak<span>City</span></div>
+    </a>
+
+    <!-- Info + Actions -->
+    <div class="header-meta">
+      <div class="header-info">
+        <span class="header-hours">
+          <span class="hours-dot"></span>
+          Пн – Вс: 10:00 – 22:00
+        </span>
+        <a href="tel:+380XXXXXXXXXX" class="header-phone" id="header-phone">+380 XX XXX-XX-XX</a>
+      </div>
+
+      <button id="cart-toggle-btn" class="cart-btn" aria-label="Кошик">
+        🛒
+        <span class="cart-total-mini" id="cart-total-mini">0 ₴</span>
+        <span class="cart-count hidden" id="cart-count">0</span>
+      </button>
+
+      <button class="btn-primary" id="header-order-btn" onclick="openCartSidebar()">
+        Замовити
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     HERO SECTION
+============================================================ -->
+<section id="hero" aria-label="Головний банер">
+  <div class="hero-grid">
+    <!-- Left: Content -->
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span>🔥</span>
+        <span>Найкраща доставка в Одесі</span>
+      </div>
+
+      <h1 class="hero-title">
+        Смачна їжа —<br />
+        <span class="gradient-text">за 45 хвилин</span><br />
+        до вашого порогу
+      </h1>
+
+      <p class="hero-subtitle">
+        Піца, суші, салати та ханойська кухня — все свіже, гаряче і смачне.
+        Готуємо з душею, доставляємо швидко.
+      </p>
+
+      <!-- 2+1 Promo Banner -->
+      <div class="promo-banner">
+        <div class="promo-big">2+1</div>
+        <div class="promo-text">
+          <strong>🎁 Купуй 2 піци — третя у подарунок!</strong>
+          Безкоштовна доставка в радіусі 4 км від нашого закладу
+        </div>
+      </div>
+
+      <div class="hero-cta-row">
+        <button class="btn-primary" onclick="scrollToMenu()" id="hero-order-btn">
+          🍕 Обрати страви
+        </button>
+        <a href="tel:+380XXXXXXXXXX" class="btn-ghost" id="hero-call-btn">
+          📞 Зателефонувати
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-value gradient-text">45 хв</span>
+          <span class="stat-label">Середній час доставки</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value gradient-text">4 км</span>
+          <span class="stat-label">Безкоштовна доставка</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value gradient-text">100%</span>
+          <span class="stat-label">Свіжі інгредієнти</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Image -->
+    <div class="hero-image-wrap">
+      <div class="hero-image-glow"></div>
+      <img src="hero_food.png" alt="Асорті страв SmakCity: піца, суші, салат, ханойська кухня" loading="eager" />
+      <div class="delivery-chip">
+        <span class="delivery-chip-icon">🛵</span>
+        <div class="delivery-chip-text">
+          Доставка<br />
+          <span>БЕЗКОШТОВНО</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     MENU SECTION
+============================================================ -->
+<section id="menu" aria-label="Меню">
+  <div class="container">
+    <div class="section-header fade-in">
+      <p class="section-eyebrow">🍽️ Наше меню</p>
+      <h2 class="section-title">Оберіть улюблену страву</h2>
+      <p class="section-desc">Готуємо зі свіжих продуктів щодня — смак, що запам'ятовується</p>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="category-tabs" role="tablist" aria-label="Категорії меню">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-category="all" id="tab-all">
+        <span class="tab-icon">🍽️</span> Всі страви
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-category="pizza" id="tab-pizza">
+        <span class="tab-icon">🍕</span> Піца
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-category="sushi" id="tab-sushi">
+        <span class="tab-icon">🍣</span> Суші
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-category="salad" id="tab-salad">
+        <span class="tab-icon">🥗</span> Салати
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-category="hanoi" id="tab-hanoi">
+        <span class="tab-icon">🍜</span> Ханойська кухня
+      </button>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid" id="products-grid" aria-label="Список страв">
+
+      <!-- PIZZA 1 -->
+      <article class="product-card fade-in" data-category="pizza" data-id="pizza-margarita" data-name="Піца Маргарита" data-price="199" data-img="pizza_margarita.png">
+        <div class="card-img-wrap">
+          <img src="pizza_margarita.png" alt="Піца Маргарита" loading="lazy" />
+          <span class="card-badge">🔥 Хіт</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Піца Маргарита</h3>
+          <p class="card-desc">Томатний соус, моцарела буйволиця, свіжий базилік, оливкова олія. Класика, яку обожнюють усі.</p>
+          <div class="card-footer">
+            <div class="card-price">199<span class="currency">₴</span></div>
+            <button class="add-to-cart-btn" onclick="addToCart(this)" aria-label="Додати Піца Маргарита до кошика">
+              🛒 В кошик
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- PIZZA 2 -->
+      <article class="product-card fade-in" data-category="pizza" data-id="pizza-bbq" data-name="Піца BBQ Чікен" data-price="249" data-img="pizza_bbq.png">
+        <div class="card-img-wrap">
+          <img src="pizza_bbq.png" alt="Піца BBQ Чікен" loading="lazy" />
+          <span class="card-badge">🌶️ Гострий хіт</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Піца BBQ Чікен</h3>
+          <p class="card-desc">Соус BBQ, куряче філе гриль, червона цибуля, сир чеддер, болгарський перець. Соковито та ситно!</p>
+          <div class="card-footer">
+            <div class="card-price">249<span class="currency">₴</span></div>
+            <button class="add-to-cart-btn" onclick="addToCart(this)" aria-label="Додати Піца BBQ Чікен до кошика">
+              🛒 В кошик
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- SUSHI 1 -->
+      <article class="product-card fade-in" data-category="sushi" data-id="sushi-philadelphia" data-name="Рол Філадельфія" data-price="279" data-img="sushi_philadelphia.png">
+        <div class="card-img-wrap">
+          <img src="sushi_philadelphia.png" alt="Рол Філадельфія" loading="lazy" />
+          <span class="card-badge">⭐ Топ вибір</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Рол Філадельфія</h3>
+          <p class="card-desc">Лосось, сир Філадельфія, огірок, авокадо. Ніжний та вершковий смак — справжня класика суші.</p>
+          <div class="card-footer">
+            <div class="card-price">279<span class="currency">₴</span></div>
+            <button class="add-to-cart-btn" onclick="addToCart(this)" aria-label="Додати Рол Філадельфія до кошика">
+              🛒 В кошик
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- SUSHI 2 -->
+      <article class="product-card fade-in" data-category="sushi" data-id="sushi-california" data-name="Рол Каліфорнія" data-price="229" data-img="sushi_california.png">
+        <div class="card-img-wrap">
+          <img src="sushi_california.png" alt="Рол Каліфорнія" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Рол Каліфорнія</h3>
+          <p class="card-desc">Краб, авокадо, огірок, кунжут. Легкий та свіжий смак — ідеальний вибір для знавців суші.</p>
+          <div class="card-footer">
+            <div class="card-price">229<span class="currency">₴</span></div>
+            <button class="add-to-cart-btn" onclick="addToCart(this)" aria-label="Додати Рол Каліфорнія до кошика">
+              🛒 В кошик
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- SALAD 1 -->
+      <article class="product-card fade-in" data-category="salad" data-id="salad-caesar" data-name="Салат Цезар" data-price="169" data-img="salad_caesar.png">
+        <div class="card-img-wrap">
+          <img src="salad_caesar.png" alt="Салат Цезар" loading="lazy" />
+          <span class="card-badge">🥗 Свіжий</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Салат Цезар</h3>
+          <p class="card-desc">Куряче філе гриль, листя романо, сир пармезан, сухарики, соус Цезар. Ситно та смачно!</p>
+          <div class="card-footer">
+            <div class="card-price">169<span class="currency">₴</span></div>
+            <button class="add-to-cart-btn" onclick="addToCart(this)" aria-label="Додати Салат Цезар до кошика">
+              🛒 В кошик
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- HANOI 1 -->
+      <article class="product-card fade-in" data-category="hanoi" data-id="hanoi-pho" data-name="Суп Фо Бо" data-price="189" data-img="hanoi_pho.png">
+        <div class="card-img-wrap">
+          <img src="hanoi_pho.png" alt="В'єтнамський суп Фо Бо" loading="lazy" />
+          <span class="card-badge">🍜 Екзотика</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Суп Фо Бо</h3>
+          <p class="card-desc">Насичений яловичий бульйон, рисова локшина, тонкі скибочки яловичини, свіжа зелень, паростки бобів.</p>
+          <div class="card-footer">
+            <div class="card-price">189<span class="currency">₴</span></div>
+            <button class="add-to-cart-btn" onclick="addToCart(this)" aria-label="Додати Суп Фо Бо до кошика">
+              🛒 В кошик
+            </button>
+          </div>
+        </div>
+      </article>
+
+    </div><!-- /products-grid -->
+  </div>
+</section>
+
+<!-- ============================================================
+     WHY US SECTION
+============================================================ -->
+<section id="why" aria-label="Чому обирають нас">
+  <div class="container">
+    <div class="section-header fade-in">
+      <p class="section-eyebrow">💪 Наші переваги</p>
+      <h2 class="section-title">Чому обирають SmakCity</h2>
+    </div>
+
+    <div class="why-grid">
+      <div class="why-card fade-in">
+        <div class="why-icon">🚀</div>
+        <h3 class="why-title">Швидка доставка</h3>
+        <p class="why-desc">Середній час доставки — 45 хвилин. Ваша їжа приїде гарячою і свіжою.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon">🎁</div>
+        <h3 class="why-title">Акція 2+1 на піцу</h3>
+        <p class="why-desc">Купуй 2 піци — третя у подарунок! Найкраща акція для компанії друзів.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon">🛵</div>
+        <h3 class="why-title">Безкоштовна доставка</h3>
+        <p class="why-desc">Безкоштовна доставка в радіусі 4 км від нашого закладу на вулиці Корольова.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon">🌿</div>
+        <h3 class="why-title">Свіжі продукти</h3>
+        <p class="why-desc">Всі інгредієнти свіжі та якісні. Жодних заморожених напівфабрикатів.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer id="footer" aria-label="Підвал сайту">
+  <div class="container">
+    <div class="footer-grid">
+      <!-- Brand -->
+      <div class="footer-brand">
+        <a href="#" class="logo" aria-label="SmakCity">
+          <div class="logo-icon">🍕</div>
+          <div class="logo-text">Smak<span>City</span></div>
+        </a>
+        <p class="footer-desc">
+          SmakCity — ваш улюблений сервіс доставки їжі в Одесі. Піца, суші, салати та ханойська кухня — все свіже та смачне.
+        </p>
+        <div class="footer-social">
+          <a href="https://instagram.com/smakcity.cafe" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Instagram SmakCity">
+            📸
+          </a>
+          <a href="tel:+380XXXXXXXXXX" class="social-link" aria-label="Зателефонувати">
+            📞
+          </a>
+        </div>
+      </div>
+
+      <!-- Menu Links -->
+      <div>
+        <h4 class="footer-col-title">Меню</h4>
+        <nav class="footer-links" aria-label="Навігація меню">
+          <a href="#" class="footer-link" onclick="filterCategory('pizza')">🍕 Піца</a>
+          <a href="#" class="footer-link" onclick="filterCategory('sushi')">🍣 Суші</a>
+          <a href="#" class="footer-link" onclick="filterCategory('salad')">🥗 Салати</a>
+          <a href="#" class="footer-link" onclick="filterCategory('hanoi')">🍜 Ханойська кухня</a>
+        </nav>
+      </div>
+
+      <!-- Contacts -->
+      <div>
+        <h4 class="footer-col-title">Контакти</h4>
+        <div class="footer-contact">
+          <div class="footer-contact-item">
+            <span class="footer-contact-icon">📍</span>
+            <span>м. Одеса, вул. Академіка Корольова, 54/2</span>
+          </div>
+          <div class="footer-contact-item">
+            <span class="footer-contact-icon">📞</span>
+            <a href="tel:+380XXXXXXXXXX" style="color:inherit;">+380 XX XXX-XX-XX</a>
+          </div>
+          <div class="footer-contact-item">
+            <span class="footer-contact-icon">🕐</span>
+            <span>Пн – Вс: 10:00 – 22:00</span>
+          </div>
+          <div class="footer-contact-item">
+            <span class="footer-contact-icon">📸</span>
+            <a href="https://instagram.com/smakcity.cafe" target="_blank" rel="noopener noreferrer" style="color: var(--clr-red-light);">@smakcity.cafe</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2025 SmakCity. Всі права захищені.</p>
+      <p class="footer-made">Зроблено з ❤️ в Одесі</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================================================
+     CART SIDEBAR
+============================================================ -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCartSidebar()" aria-hidden="true"></div>
+<aside class="cart-sidebar" id="cart-sidebar" aria-label="Кошик">
+  <div class="cart-header">
+    <h2 class="cart-title">🛒 Ваш кошик</h2>
+    <button class="cart-close" onclick="closeCartSidebar()" aria-label="Закрити кошик">✕</button>
+  </div>
+
+  <div class="cart-items" id="cart-items-container">
+    <div class="cart-empty" id="cart-empty">
+      <div class="cart-empty-icon">🍽️</div>
+      <p>Ваш кошик порожній.<br />Додайте смачні страви!</p>
+    </div>
+  </div>
+
+  <div class="cart-footer">
+    <div class="cart-subtotal">
+      <span class="cart-subtotal-label">Сума замовлення:</span>
+      <span class="cart-subtotal-val" id="cart-total-val">0 ₴</span>
+    </div>
+    <p class="cart-promo-note" id="promo-note" style="display:none;">✅ Акція 2+1 застосована!</p>
+    <button class="cart-checkout-btn" onclick="openOrderModal()" id="cart-checkout-btn" disabled>
+      🎉 Оформити замовлення
+    </button>
+  </div>
+</aside>
+
+<!-- ============================================================
+     ORDER MODAL (CHECKOUT FORM)
+============================================================ -->
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+  <div class="modal" id="order-modal">
+    <!-- Form State -->
+    <div id="form-state">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="modal-heading">📦 Оформлення замовлення</h2>
+          <p class="modal-subtitle">Заповніть дані для доставки</p>
+        </div>
+        <button class="modal-close" onclick="closeOrderModal()" aria-label="Закрити форму">✕</button>
+      </div>
+
+      <!-- Order Summary inside form -->
+      <div class="form-order-summary" id="form-order-summary">
+        <p class="form-order-summary-title">Ваше замовлення</p>
+        <div class="form-order-list" id="form-order-list"></div>
+        <div class="form-order-total">
+          <span>Разом:</span>
+          <span id="form-order-total">0 ₴</span>
+        </div>
+      </div>
+
+      <!-- Order Form -->
+      <form id="order-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="input-name">Ім'я <span class="required">*</span></label>
+          <input
+            class="form-control"
+            type="text"
+            id="input-name"
+            name="name"
+            placeholder="Ваше ім'я"
+            required
+            autocomplete="given-name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-phone">Телефон <span class="required">*</span></label>
+          <input
+            class="form-control"
+            type="tel"
+            id="input-phone"
+            name="phone"
+            placeholder="+380 XX XXX-XX-XX"
+            required
+            autocomplete="tel"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-address">Адреса доставки <span class="required">*</span></label>
+          <input
+            class="form-control"
+            type="text"
+            id="input-address"
+            name="address"
+            placeholder="вул. Назва, будинок, квартира"
+            required
+            autocomplete="street-address"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-comment">Коментар до замовлення</label>
+          <textarea
+            class="form-control"
+            id="input-comment"
+            name="comment"
+            placeholder="Побажання щодо замовлення, домофон, поверх тощо..."
+          ></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">
+          ✅ Підтвердити замовлення
+        </button>
+      </form>
+    </div><!-- /form-state -->
+
+    <!-- Success State -->
+    <div class="success-state" id="success-state">
+      <div class="success-icon">🎉</div>
+      <h3 class="success-title">Замовлення прийнято!</h3>
+      <p class="success-desc">
+        Дякуємо за замовлення! Наш оператор зв'яжеться з вами найближчим часом для підтвердження.
+        Час доставки — приблизно 45 хвилин.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     FLOATING ACTION BUTTON
+============================================================ -->
+<button class="fab" id="fab-order" onclick="openCartSidebar()" aria-label="Відкрити кошик">
+  🛒 Перейти до замовлення
+</button>
+
+<!-- ============================================================
+     TOAST CONTAINER
+============================================================ -->
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script src="script.js"></script>
+
+</body>
+</html>
