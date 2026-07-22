@@ -938,35 +938,58 @@
         <div class="form-group">
           <p class="form-label">Спосіб оплати <span class="required">*</span></p>
           <div class="payment-options">
+
+            <!-- CASH -->
             <label class="payment-option" for="pay-cash">
               <input type="radio" id="pay-cash" name="payment" value="Готівкою кур'єру" checked />
               <span class="payment-option-inner">
                 <span class="payment-icon">
-                  <span class="ic" style="width:32px;height:32px;display:block"><svg><use href="#ic-cash"/></svg></span>
+                  <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+                    <use href="#ic-cash"/>
+                  </svg>
                 </span>
-                <span class="payment-label">Готівкою<br><small>кур'єру</small></span>
+                <span class="payment-label">
+                  Готівкою
+                  <small>Кур'єру при доставці</small>
+                </span>
               </span>
             </label>
+
+            <!-- CARD -->
             <label class="payment-option" for="pay-card">
               <input type="radio" id="pay-card" name="payment" value="Карткою через термінал" />
               <span class="payment-option-inner">
                 <span class="payment-icon">
-                  <span class="ic" style="width:32px;height:32px;display:block"><svg><use href="#ic-card"/></svg></span>
+                  <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+                    <use href="#ic-card"/>
+                  </svg>
                 </span>
-                <span class="payment-label">Карткою<br><small>термінал</small></span>
+                <span class="payment-label">
+                  Карткою
+                  <small>Термінал у кур'єра</small>
+                </span>
               </span>
             </label>
+
+            <!-- ONLINE -->
             <label class="payment-option" for="pay-online">
               <input type="radio" id="pay-online" name="payment" value="Онлайн-оплата" />
               <span class="payment-option-inner">
                 <span class="payment-icon">
-                  <span class="ic" style="width:32px;height:32px;display:block"><svg><use href="#ic-globe"/></svg></span>
+                  <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+                    <use href="#ic-globe"/>
+                  </svg>
                 </span>
-                <span class="payment-label">Онлайн<br><small>оплата</small></span>
+                <span class="payment-label">
+                  Онлайн
+                  <small>Оплата зараз на сайті</small>
+                </span>
               </span>
             </label>
+
           </div>
         </div>
+
 
         <button type="submit" class="submit-btn" id="submit-btn">
           <span class="ic" style="width:20px;height:20px;display:inline-block;vertical-align:middle;margin-right:6px"><svg><use href="#ic-check"/></svg></span>
