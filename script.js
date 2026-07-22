@@ -185,7 +185,9 @@ function openOrderModal() {
   document.getElementById("order-form").reset();
   document.getElementById("form-state").style.display = "block";
   document.getElementById("success-state").classList.remove("visible");
-  document.getElementById("submit-btn").disabled = false;
+  const submitBtn = document.getElementById("submit-btn");
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = `<span class="ic" style="width:20px;height:20px;display:inline-block;vertical-align:middle;margin-right:6px"><svg><use href="#ic-check"/></svg></span> Підтвердити замовлення`;
 
   // Reset address field visibility
   document.getElementById("address-group").style.display = "block";
