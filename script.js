@@ -1,16 +1,28 @@
 /* ============================================================
-   CONFIGURATION — Telegram Bot API
-   Replace BOT_TOKEN with your actual token (e.g. "8929703194:AAGzVCaQKS7AgZwpWkx8CjCEBfbNHXHTe6A")
-   Replace CHAT_ID with your Telegram chat/group ID (e.g. "8954071506")
+   SMAKCITY — MAIN SCRIPT
+   Версія 2.0: Форма замовлення + Telegram Bot + Онлайн-оплата
 ============================================================ */
-const BOT_TOKEN = "8929703194:AAGzVCaQKS7AgZwpWkx8CjCEBfbNHXHTe6A"; // 🔑 Токен бота
-const CHAT_ID   = "8954071506";                                          // 💬 ID чату
 
 /* ============================================================
    CART STATE
 ============================================================ */
 /** @type {Array<{id:string, name:string, price:number, qty:number, img:string}>} */
 let cart = [];
+
+/* ============================================================
+   UTILITY: Generate order number
+============================================================ */
+function generateOrderNumber() {
+  return Math.floor(1000 + Math.random() * 9000);
+}
+
+/* ============================================================
+   UTILITY: Generate transaction ID
+============================================================ */
+function generateTransactionId() {
+  return "TXN-" + Date.now().toString(36).toUpperCase() + "-" +
+    Math.random().toString(36).substring(2, 6).toUpperCase();
+}
 
 /* ============================================================
    UTILITY: Get total price
@@ -31,12 +43,11 @@ function fmtPrice(n) {
    Called by each "В кошик" button on a product card.
 ============================================================ */
 function addToCart(btn) {
-  // Read product data from the parent <article> element
-  const card   = btn.closest(".product-card");
-  const id     = card.dataset.id;
-  const name   = card.dataset.name;
-  const price  = parseInt(card.dataset.price, 10);
-  const img    = card.dataset.img;
+  const card  = btn.closest(".product-card");
+  const id    = card.dataset.id;
+  const name  = card.dataset.name;
+  const price = parseInt(card.dataset.price, 10);
+  const img   = card.dataset.img;
 
   const existing = cart.find(i => i.id === id);
   if (existing) {
@@ -48,9 +59,11 @@ function addToCart(btn) {
   updateCartUI();
   showToast(`✅ "${name}" додано до кошика`, "success");
 
-  // Brief button animation feedback
   btn.textContent = "✔ Додано!";
-  setTimeout(() => { btn.innerHTML = "🛒 В кошик"; }, 1200);
+  setTimeout(() => { 
+    btn.innerHTML = "🛒 В кошик"; 
+    if (window.twemoji) twemoji.parse(btn);
+  }, 1200);
 }
 
 /* ============================================================
@@ -125,6 +138,8 @@ function updateCartUI() {
     `;
     container.appendChild(el);
   });
+
+  if (window.twemoji) twemoji.parse(document.getElementById("cart-sidebar"));
 }
 
 /* ============================================================
@@ -162,6 +177,7 @@ function openOrderModal() {
     </div>
   `).join("");
   document.getElementById("form-order-total").textContent = fmtPrice(getTotal());
+  if (window.twemoji) twemoji.parse(document.getElementById("form-order-summary"));
 
   // Reset form + show form state
   document.getElementById("order-form").reset();
@@ -169,9 +185,12 @@ function openOrderModal() {
   document.getElementById("success-state").classList.remove("visible");
   document.getElementById("submit-btn").disabled = false;
 
+  // Reset address field visibility
+  document.getElementById("address-group").style.display = "block";
+  document.getElementById("input-address").required = true;
+
   document.getElementById("modal-overlay").classList.add("open");
   document.body.style.overflow = "hidden";
-  // Focus first field for accessibility
   setTimeout(() => document.getElementById("input-name").focus(), 350);
 }
 
@@ -186,58 +205,179 @@ document.getElementById("modal-overlay").addEventListener("click", function(e) {
 });
 
 /* ============================================================
+   PICKUP CHECKBOX — toggle address field
+============================================================ */
+document.getElementById("input-pickup").addEventListener("change", function() {
+  const addressGroup = document.getElementById("address-group");
+  const addressInput = document.getElementById("input-address");
+
+  if (this.checked) {
+    addressGroup.style.display = "none";
+    addressInput.required = false;
+    addressInput.value = "";
+  } else {
+    addressGroup.style.display = "block";
+    addressInput.required = true;
+  }
+});
+
+/* ============================================================
+   ONLINE PAYMENT MODAL OPEN / CLOSE
+============================================================ */
+function openPaymentModal(total) {
+  // Set transaction info
+  document.getElementById("pay-transaction-id").textContent = generateTransactionId();
+  document.getElementById("pay-amount").textContent = fmtPrice(total);
+
+  // Show processing state first
+  document.getElementById("pay-processing-state").style.display = "block";
+  document.getElementById("pay-success-state").style.display = "none";
+
+  // Show modal
+  document.getElementById("payment-modal-overlay").classList.add("open");
+
+  // After 2.8s — switch to success state
+  setTimeout(() => {
+    document.getElementById("pay-processing-state").style.display = "none";
+    document.getElementById("pay-success-state").style.display = "block";
+  }, 2800);
+}
+
+function closePaymentModal() {
+  document.getElementById("payment-modal-overlay").classList.remove("open");
+  closeOrderModal();
+}
+
+// Close payment modal when clicking outside
+document.getElementById("payment-modal-overlay").addEventListener("click", function(e) {
+  if (e.target === this) closePaymentModal();
+});
+
+/* ============================================================
    BUILD TELEGRAM MESSAGE
    Formats cart contents and customer info into a readable
-   Telegram Bot API message string.
+   Telegram Bot API HTML message string.
 ============================================================ */
-function buildTelegramMessage(name, phone, address, comment) {
-  // Create an order lines string from cart items
+function buildTelegramMessage(orderNum, name, phone, address, paymentMethod, comment) {
+  const isPickup = address === "Самовивіз";
+
   const orderLines = cart.map(item =>
-    `  • ${item.name} × ${item.qty} = ${fmtPrice(item.price * item.qty)}`
+    `  • <b>${item.name}</b> × ${item.qty} — ${fmtPrice(item.price * item.qty)}`
   ).join("\n");
 
-  // Check if the 2+1 pizza promo applies (≥2 pizzas ordered)
   const pizzaQty = cart
     .filter(i => i.id.startsWith("pizza"))
     .reduce((n, i) => n + i.qty, 0);
   const promoLine = pizzaQty >= 2
-    ? "\n🎁 Акція 2+1 на піцу застосована!\n"
+    ? "\n🎁 <b>Акція 2+1 на піцу застосована!</b>\n"
     : "";
 
-  // Compose final message text (Markdown V2 safe via plain text)
   const text = [
-    "🍕 НОВЕ ЗАМОВЛЕННЯ — SmakCity",
+    `📦 <b>НОВЕ ЗАМОВЛЕННЯ #${orderNum}</b>`,
     "━━━━━━━━━━━━━━━━━━━━━━",
-    `👤 Ім'я:    ${name}`,
-    `📞 Телефон: ${phone}`,
-    `📍 Адреса:  ${address}`,
-    comment ? `💬 Коментар: ${comment}` : "",
+    `👤 <b>Клієнт:</b> ${name} (${phone})`,
+    `📍 <b>Адреса:</b> ${isPickup ? "🏠 Самовивіз" : address}`,
+    `💳 <b>Спосіб оплати:</b> ${paymentMethod}`,
     "━━━━━━━━━━━━━━━━━━━━━━",
-    "📋 Склад замовлення:",
+    "🛒 <b>Склад замовлення:</b>",
     orderLines,
     promoLine,
-    `💰 Сума: ${fmtPrice(getTotal())}`,
+    `💰 <b>Підсумок: ${fmtPrice(getTotal())}</b>`,
     "━━━━━━━━━━━━━━━━━━━━━━",
+    comment ? `💬 <b>Коментар:</b> ${comment}` : "",
   ].filter(Boolean).join("\n");
 
   return text;
 }
 
 /* ============================================================
-   SEND ORDER TO TELEGRAM BOT
-   Performs a POST request to the Telegram Bot API /sendMessage
-   endpoint with the formatted order message.
-   @param {string} text - The formatted order message
-   @returns {Promise<boolean>} - true if sent successfully
+   BUILD TELEGRAM INLINE KEYBOARD
+   Inline buttons for the manager to update order status.
 ============================================================ */
-async function sendOrderToTelegram(text) {
-  // Construct the Telegram Bot API URL using the configured token
-  const apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+function buildInlineKeyboard(orderNum) {
+  return {
+    inline_keyboard: [
+      [
+        { text: "✅ Прийняти",          callback_data: `accept_${orderNum}` },
+        { text: "👨‍🍳 В роботі",        callback_data: `cooking_${orderNum}` },
+      ],
+      [
+        { text: "🚗 Передано кур'єру", callback_data: `courier_${orderNum}` },
+        { text: "❌ Відхилити",         callback_data: `reject_${orderNum}` },
+      ],
+    ],
+  };
+}
+
+/* ============================================================
+   SEND ORDER TO TELEGRAM BOT
+   ────────────────────────────────────────────────────────────
+   Підтримує 3 режими (визначається автоматично по config.js):
+
+   1. DEMO_MODE: true  → нічого не відправляється, лише лог
+   2. PROXY_URL задано → запит іде на Serverless-проксі
+      (токен захований на сервері, у браузері НЕ видно)
+   3. BOT_TOKEN задано → прямий запит до api.telegram.org
+      (простіше, але токен видний у DevTools)
+   ────────────────────────────────────────────────────────────
+   @param {string} text        — HTML-повідомлення для Telegram
+   @param {object} replyMarkup — Об'єкт inline-клавіатури
+   @returns {Promise<boolean>} — true якщо успішно
+============================================================ */
+async function sendOrderToTelegram(text, replyMarkup) {
+
+  // ── Режим 1: DEMO_MODE — пропускаємо реальну відправку ──────
+  if (SMAKCITY_CONFIG.DEMO_MODE) {
+    console.log("[SmakCity] DEMO MODE: відправка пропущена.");
+    console.log("[SmakCity] Повідомлення:\n", text);
+    return true;
+  }
+
+  // ── Режим 2: Проксі-сервер (рекомендовано) ──────────────────
+  // Токен зберігається на сервері (Cloudflare/Vercel),
+  // клієнт надсилає тільки текст і клавіатуру — без токена.
+  if (SMAKCITY_CONFIG.PROXY_URL) {
+    try {
+      const response = await fetch(SMAKCITY_CONFIG.PROXY_URL, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ text, reply_markup: replyMarkup }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        console.error("[SmakCity] Proxy error:", err);
+        return false;
+      }
+
+      const data = await response.json();
+      if (!data.ok) {
+        console.error("[SmakCity] Telegram (via proxy) not-ok:", data);
+        return false;
+      }
+
+      return true;
+
+    } catch (networkError) {
+      console.error("[SmakCity] Proxy network error:", networkError);
+      return false;
+    }
+  }
+
+  // ── Режим 3: Пряма відправка до Telegram API ────────────────
+  // ⚠️  Токен буде видний у DevTools → тільки для демо/тесту
+  if (!SMAKCITY_CONFIG.BOT_TOKEN || !SMAKCITY_CONFIG.CHAT_ID) {
+    console.error("[SmakCity] Немає ні PROXY_URL, ні BOT_TOKEN — перевір config.js");
+    return false;
+  }
+
+  const apiUrl = `https://api.telegram.org/bot${SMAKCITY_CONFIG.BOT_TOKEN}/sendMessage`;
 
   const payload = {
-    chat_id: CHAT_ID,
-    text:    text,
-    parse_mode: "HTML",  // Use HTML parse mode for basic formatting
+    chat_id:      SMAKCITY_CONFIG.CHAT_ID,
+    text:         text,
+    parse_mode:   "HTML",
+    reply_markup: replyMarkup,
   };
 
   try {
@@ -259,9 +399,10 @@ async function sendOrderToTelegram(text) {
       return false;
     }
 
-    return true; // Message sent successfully
+    return true;
+
   } catch (networkError) {
-    console.error("[SmakCity] Network error sending to Telegram:", networkError);
+    console.error("[SmakCity] Network error:", networkError);
     return false;
   }
 }
@@ -274,13 +415,17 @@ async function sendOrderToTelegram(text) {
 document.getElementById("order-form").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  // Read form values
-  const name    = document.getElementById("input-name").value.trim();
-  const phone   = document.getElementById("input-phone").value.trim();
-  const address = document.getElementById("input-address").value.trim();
-  const comment = document.getElementById("input-comment").value.trim();
+  const name          = document.getElementById("input-name").value.trim();
+  const phone         = document.getElementById("input-phone").value.trim();
+  const isPickup      = document.getElementById("input-pickup").checked;
+  const addressRaw    = document.getElementById("input-address").value.trim();
+  const address       = isPickup ? "Самовивіз" : addressRaw;
+  const comment       = document.getElementById("input-comment").value.trim();
+  const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value || "Готівкою кур'єру";
+  const isOnline      = paymentMethod === "Онлайн-оплата";
+  const orderTotal    = getTotal();
 
-  // Basic client-side validation
+  // Validation
   if (!name) {
     showToast("⚠️ Будь ласка, введіть ваше ім'я", "error");
     document.getElementById("input-name").focus();
@@ -291,7 +436,7 @@ document.getElementById("order-form").addEventListener("submit", async function(
     document.getElementById("input-phone").focus();
     return;
   }
-  if (!address) {
+  if (!isPickup && !addressRaw) {
     showToast("⚠️ Будь ласка, введіть адресу доставки", "error");
     document.getElementById("input-address").focus();
     return;
@@ -306,23 +451,38 @@ document.getElementById("order-form").addEventListener("submit", async function(
   submitBtn.disabled = true;
   submitBtn.innerHTML = "⏳ Відправляємо...";
 
-  // Build and send the Telegram message
-  const message = buildTelegramMessage(name, phone, address, comment);
-  const success = await sendOrderToTelegram(message);
+  // Generate order number
+  const orderNum = generateOrderNumber();
+
+  // Build message + inline keyboard
+  const message       = buildTelegramMessage(orderNum, name, phone, address, paymentMethod, comment);
+  const replyMarkup   = buildInlineKeyboard(orderNum);
+  const success       = await sendOrderToTelegram(message, replyMarkup);
 
   if (success) {
-    // Show success state
-    document.getElementById("form-state").style.display = "none";
-    document.getElementById("success-state").classList.add("visible");
-
     // Clear the cart
     cart = [];
     updateCartUI();
 
-    // Auto-close modal after 4 seconds
-    setTimeout(() => closeOrderModal(), 4000);
+    if (isOnline) {
+      // Online payment: show payment simulation modal
+      openPaymentModal(orderTotal);
+      // Show a simplified success state behind
+      document.getElementById("form-state").style.display = "none";
+      document.getElementById("success-state").classList.add("visible");
+      document.getElementById("success-order-num").textContent = `Замовлення #${orderNum}`;
+      document.getElementById("success-desc").textContent =
+        "Оплату опрацьовано. Ваше замовлення підтверджено і передано на кухню!";
+    } else {
+      // Regular: show success state in the same modal
+      document.getElementById("form-state").style.display = "none";
+      document.getElementById("success-state").classList.add("visible");
+      document.getElementById("success-order-num").textContent = `Замовлення #${orderNum}`;
+
+      // Auto-close modal after 4 seconds
+      setTimeout(() => closeOrderModal(), 4000);
+    }
   } else {
-    // Telegram send failed — show error toast, re-enable button
     showToast("❌ Помилка. Спробуйте ще раз або зателефонуйте нам.", "error");
     submitBtn.disabled = false;
     submitBtn.innerHTML = "✅ Підтвердити замовлення";
@@ -333,19 +493,16 @@ document.getElementById("order-form").addEventListener("submit", async function(
    CATEGORY FILTER TABS
 ============================================================ */
 function filterCategory(category) {
-  // Update tab active state
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.category === category);
     btn.setAttribute("aria-selected", btn.dataset.category === category);
   });
 
-  // Show/hide product cards
   document.querySelectorAll(".product-card").forEach(card => {
     const match = category === "all" || card.dataset.category === category;
     card.classList.toggle("hidden", !match);
   });
 
-  // Scroll to menu on mobile if triggered from footer
   scrollToMenu(false);
 }
 
@@ -371,8 +528,8 @@ function showToast(message, type = "success") {
   toast.className = `toast ${type}`;
   toast.textContent = message;
   container.appendChild(toast);
+  if (window.twemoji) twemoji.parse(toast);
 
-  // Auto-remove after 3 seconds
   setTimeout(() => {
     toast.classList.add("hiding");
     setTimeout(() => toast.remove(), 400);
@@ -398,6 +555,7 @@ document.querySelectorAll(".fade-in").forEach(el => fadeObserver.observe(el));
 ============================================================ */
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    closePaymentModal();
     closeOrderModal();
     closeCartSidebar();
   }
@@ -407,3 +565,4 @@ document.addEventListener("keydown", (e) => {
    INITIALIZATION — Run on DOM ready
 ============================================================ */
 updateCartUI();
+if (window.twemoji) twemoji.parse(document.body);
