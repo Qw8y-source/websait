@@ -83,6 +83,9 @@ function changeQty(id, delta) {
    UPDATE CART UI
    Re-renders the cart sidebar and updates the header counter.
 ============================================================ */
+// Cache the empty state element once on load so it's not lost when innerHTML is cleared
+const emptyCartEl = document.getElementById("cart-empty");
+
 function updateCartUI() {
   const total     = getTotal();
   const itemCount = cart.reduce((n, i) => n + i.qty, 0);
@@ -112,11 +115,10 @@ function updateCartUI() {
 
   /* Render cart items */
   const container = document.getElementById("cart-items-container");
-  const emptyEl   = document.getElementById("cart-empty");
 
   if (cart.length === 0) {
     container.innerHTML = "";
-    container.appendChild(emptyEl);
+    if (emptyCartEl) container.appendChild(emptyCartEl);
     return;
   }
 
@@ -333,12 +335,24 @@ async function sendOrderToTelegram(text, replyMarkup) {
     return true;
   }
 
+  // Helper for fetch with timeout
+  const fetchWithTimeout = async (url, options, timeout = 10000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(id);
+      return response;
+    } catch (err) {
+      clearTimeout(id);
+      throw err;
+    }
+  };
+
   // ── Режим 2: Проксі-сервер (рекомендовано) ──────────────────
-  // Токен зберігається на сервері (Cloudflare/Vercel),
-  // клієнт надсилає тільки текст і клавіатуру — без токена.
   if (SMAKCITY_CONFIG.PROXY_URL) {
     try {
-      const response = await fetch(SMAKCITY_CONFIG.PROXY_URL, {
+      const response = await fetchWithTimeout(SMAKCITY_CONFIG.PROXY_URL, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ text, reply_markup: replyMarkup }),
@@ -359,13 +373,12 @@ async function sendOrderToTelegram(text, replyMarkup) {
       return true;
 
     } catch (networkError) {
-      console.error("[SmakCity] Proxy network error:", networkError);
+      console.error("[SmakCity] Proxy network error (or timeout):", networkError);
       return false;
     }
   }
 
   // ── Режим 3: Пряма відправка до Telegram API ────────────────
-  // ⚠️  Токен буде видний у DevTools → тільки для демо/тесту
   if (!SMAKCITY_CONFIG.BOT_TOKEN || !SMAKCITY_CONFIG.CHAT_ID) {
     console.error("[SmakCity] Немає ні PROXY_URL, ні BOT_TOKEN — перевір config.js");
     return false;
@@ -381,7 +394,7 @@ async function sendOrderToTelegram(text, replyMarkup) {
   };
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await fetchWithTimeout(apiUrl, {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify(payload),
@@ -402,7 +415,7 @@ async function sendOrderToTelegram(text, replyMarkup) {
     return true;
 
   } catch (networkError) {
-    console.error("[SmakCity] Network error:", networkError);
+    console.error("[SmakCity] Network error (or timeout):", networkError);
     return false;
   }
 }
@@ -415,77 +428,87 @@ async function sendOrderToTelegram(text, replyMarkup) {
 document.getElementById("order-form").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  const name          = document.getElementById("input-name").value.trim();
-  const phone         = document.getElementById("input-phone").value.trim();
-  const isPickup      = document.getElementById("input-pickup").checked;
-  const addressRaw    = document.getElementById("input-address").value.trim();
-  const address       = isPickup ? "Самовивіз" : addressRaw;
-  const comment       = document.getElementById("input-comment").value.trim();
-  const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value || "Готівкою кур'єру";
-  const isOnline      = paymentMethod === "Онлайн-оплата";
-  const orderTotal    = getTotal();
+  try {
+    const name          = document.getElementById("input-name").value.trim();
+    const phone         = document.getElementById("input-phone").value.trim();
+    const isPickup      = document.getElementById("input-pickup").checked;
+    const addressRaw    = document.getElementById("input-address").value.trim();
+    const address       = isPickup ? "Самовивіз" : addressRaw;
+    const comment       = document.getElementById("input-comment").value.trim();
+    const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value || "Готівкою кур'єру";
+    const isOnline      = paymentMethod === "Онлайн-оплата";
+    const orderTotal    = getTotal();
 
-  // Validation
-  if (!name) {
-    showToast("⚠️ Будь ласка, введіть ваше ім'я", "error");
-    document.getElementById("input-name").focus();
-    return;
-  }
-  if (!phone) {
-    showToast("⚠️ Будь ласка, введіть номер телефону", "error");
-    document.getElementById("input-phone").focus();
-    return;
-  }
-  if (!isPickup && !addressRaw) {
-    showToast("⚠️ Будь ласка, введіть адресу доставки", "error");
-    document.getElementById("input-address").focus();
-    return;
-  }
-  if (cart.length === 0) {
-    showToast("⚠️ Кошик порожній", "error");
-    return;
-  }
-
-  // Disable button to prevent double submit
-  const submitBtn = document.getElementById("submit-btn");
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = "⏳ Відправляємо...";
-
-  // Generate order number
-  const orderNum = generateOrderNumber();
-
-  // Build message + inline keyboard
-  const message       = buildTelegramMessage(orderNum, name, phone, address, paymentMethod, comment);
-  const replyMarkup   = buildInlineKeyboard(orderNum);
-  const success       = await sendOrderToTelegram(message, replyMarkup);
-
-  if (success) {
-    // Clear the cart
-    cart = [];
-    updateCartUI();
-
-    if (isOnline) {
-      // Online payment: show payment simulation modal
-      openPaymentModal(orderTotal);
-      // Show a simplified success state behind
-      document.getElementById("form-state").style.display = "none";
-      document.getElementById("success-state").classList.add("visible");
-      document.getElementById("success-order-num").textContent = `Замовлення #${orderNum}`;
-      document.getElementById("success-desc").textContent =
-        "Оплату опрацьовано. Ваше замовлення підтверджено і передано на кухню!";
-    } else {
-      // Regular: show success state in the same modal
-      document.getElementById("form-state").style.display = "none";
-      document.getElementById("success-state").classList.add("visible");
-      document.getElementById("success-order-num").textContent = `Замовлення #${orderNum}`;
-
-      // Auto-close modal after 4 seconds
-      setTimeout(() => closeOrderModal(), 4000);
+    // Validation
+    if (!name) {
+      showToast("⚠️ Будь ласка, введіть ваше ім'я", "error");
+      document.getElementById("input-name").focus();
+      return;
     }
-  } else {
-    showToast("❌ Помилка. Спробуйте ще раз або зателефонуйте нам.", "error");
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = "✅ Підтвердити замовлення";
+    if (!phone) {
+      showToast("⚠️ Будь ласка, введіть номер телефону", "error");
+      document.getElementById("input-phone").focus();
+      return;
+    }
+    if (!isPickup && !addressRaw) {
+      showToast("⚠️ Будь ласка, введіть адресу доставки", "error");
+      document.getElementById("input-address").focus();
+      return;
+    }
+    if (cart.length === 0) {
+      showToast("⚠️ Кошик порожній", "error");
+      return;
+    }
+
+    // Disable button to prevent double submit
+    const submitBtn = document.getElementById("submit-btn");
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "⏳ Відправляємо...";
+
+    // Generate order number
+    const orderNum = generateOrderNumber();
+
+    // Build message + inline keyboard
+    const message       = buildTelegramMessage(orderNum, name, phone, address, paymentMethod, comment);
+    const replyMarkup   = buildInlineKeyboard(orderNum);
+    const success       = await sendOrderToTelegram(message, replyMarkup);
+
+    if (success) {
+      // Clear the cart
+      cart = [];
+      updateCartUI();
+
+      if (isOnline) {
+        // Online payment: show payment simulation modal
+        openPaymentModal(orderTotal);
+        // Show a simplified success state behind
+        document.getElementById("form-state").style.display = "none";
+        document.getElementById("success-state").classList.add("visible");
+        document.getElementById("success-order-num").textContent = `Замовлення #${orderNum}`;
+        document.getElementById("success-desc").textContent =
+          "Оплату опрацьовано. Ваше замовлення підтверджено і передано на кухню!";
+      } else {
+        // Regular: show success state in the same modal
+        document.getElementById("form-state").style.display = "none";
+        document.getElementById("success-state").classList.add("visible");
+        document.getElementById("success-order-num").textContent = `Замовлення #${orderNum}`;
+
+        // Auto-close modal after 4 seconds
+        setTimeout(() => closeOrderModal(), 4000);
+      }
+    } else {
+      showToast("❌ Помилка. Спробуйте ще раз або зателефонуйте нам.", "error");
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "✅ Підтвердити замовлення";
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Критична помилка: " + err.message);
+    const submitBtn = document.getElementById("submit-btn");
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "✅ Підтвердити замовлення";
+    }
   }
 });
 
