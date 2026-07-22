@@ -6,10 +6,13 @@
   <meta name="description" content="SmakCity — швидка доставка піци, суші, салатів та ханойської кухні по Одесі. Акція 2+1: купуй 2 піци — третя у подарунок! Безкоштовна доставка в радіусі 4 км." />
   <title>SmakCity — Доставка їжі в Одесі</title>
 
-  <!-- Google Fonts -->
+  <!-- Critical resource preloads -->
+  <link rel="preload" href="hero_food.jpg" as="image" fetchpriority="high" />
+
+  <!-- Google Fonts — display=swap prevents FOUT -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
 
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
@@ -502,7 +505,7 @@
     <!-- Right: Image -->
     <div class="hero-image-wrap">
       <div class="hero-image-glow"></div>
-      <img src="hero_food.png" alt="Асорті страв SmakCity: піца, суші, салат, ханойська кухня" loading="eager" />
+      <img src="hero_food.jpg" alt="Асорті страв SmakCity: піца, суші, салат, ханойська кухня" width="540" height="540" loading="eager" fetchpriority="high" decoding="sync" />
       <div class="delivery-chip">
         <span class="delivery-chip-icon">
           <span class="ic ic-lg"><svg><use href="#ic-moped"/></svg></span>
@@ -554,9 +557,9 @@
     <div class="products-grid" id="products-grid" aria-label="Список страв">
 
       <!-- PIZZA 1 -->
-      <article class="product-card fade-in" data-category="pizza" data-id="pizza-margarita" data-name="Піца Маргарита" data-price="199" data-img="pizza_margarita.png">
+      <article class="product-card fade-in" data-category="pizza" data-id="pizza-margarita" data-name="Піца Маргарита" data-price="199" data-img="pizza_margarita.jpg">
         <div class="card-img-wrap">
-          <img src="pizza_margarita.png" alt="Піца Маргарита" loading="lazy" />
+          <img src="pizza_margarita.jpg" alt="Піца Маргарита" width="400" height="300" loading="lazy" decoding="async" />
           <span class="card-badge">
             <span class="ic" style="width:14px;height:14px"><svg><use href="#ic-fire"/></svg></span>
             <span class="badge-text">Хіт</span>
@@ -575,9 +578,9 @@
       </article>
 
       <!-- PIZZA 2 -->
-      <article class="product-card fade-in" data-category="pizza" data-id="pizza-bbq" data-name="Піца BBQ Чікен" data-price="249" data-img="pizza_bbq.png">
+      <article class="product-card fade-in" data-category="pizza" data-id="pizza-bbq" data-name="Піца BBQ Чікен" data-price="249" data-img="pizza_bbq.jpg">
         <div class="card-img-wrap">
-          <img src="pizza_bbq.png" alt="Піца BBQ Чікен" loading="lazy" />
+          <img src="pizza_bbq.jpg" alt="Піца BBQ Чікен" width="400" height="300" loading="lazy" decoding="async" />
           <span class="card-badge">
             <span class="ic" style="width:14px;height:14px"><svg><use href="#ic-pepper"/></svg></span>
             <span class="badge-text">Гострий хіт</span>
@@ -596,9 +599,9 @@
       </article>
 
       <!-- SUSHI 1 -->
-      <article class="product-card fade-in" data-category="sushi" data-id="sushi-philadelphia" data-name="Рол Філадельфія" data-price="279" data-img="sushi_philadelphia.png">
+      <article class="product-card fade-in" data-category="sushi" data-id="sushi-philadelphia" data-name="Рол Філадельфія" data-price="279" data-img="sushi_philadelphia.jpg">
         <div class="card-img-wrap">
-          <img src="sushi_philadelphia.png" alt="Рол Філадельфія" loading="lazy" />
+          <img src="sushi_philadelphia.jpg" alt="Рол Філадельфія" width="400" height="300" loading="lazy" decoding="async" />
           <span class="card-badge">
             <span class="ic" style="width:14px;height:14px"><svg><use href="#ic-star"/></svg></span>
             <span class="badge-text">Топ вибір</span>
@@ -617,9 +620,9 @@
       </article>
 
       <!-- SUSHI 2 -->
-      <article class="product-card fade-in" data-category="sushi" data-id="sushi-california" data-name="Рол Каліфорнія" data-price="229" data-img="sushi_california.png">
+      <article class="product-card fade-in" data-category="sushi" data-id="sushi-california" data-name="Рол Каліфорнія" data-price="229" data-img="sushi_california.jpg">
         <div class="card-img-wrap">
-          <img src="sushi_california.png" alt="Рол Каліфорнія" loading="lazy" />
+          <img src="sushi_california.jpg" alt="Рол Каліфорнія" width="400" height="300" loading="lazy" decoding="async" />
         </div>
         <div class="card-body">
           <h3 class="card-title">Рол Каліфорнія</h3>
@@ -634,9 +637,9 @@
       </article>
 
       <!-- SALAD 1 -->
-      <article class="product-card fade-in" data-category="salad" data-id="salad-caesar" data-name="Салат Цезар" data-price="169" data-img="salad_caesar.png">
+      <article class="product-card fade-in" data-category="salad" data-id="salad-caesar" data-name="Салат Цезар" data-price="169" data-img="salad_caesar.jpg">
         <div class="card-img-wrap">
-          <img src="salad_caesar.png" alt="Салат Цезар" loading="lazy" />
+          <img src="salad_caesar.jpg" alt="Салат Цезар" width="400" height="300" loading="lazy" decoding="async" />
           <span class="card-badge">
             <span class="ic" style="width:14px;height:14px"><svg><use href="#ic-salad"/></svg></span>
             <span class="badge-text">Свіжий</span>
@@ -655,9 +658,9 @@
       </article>
 
       <!-- HANOI 1 -->
-      <article class="product-card fade-in" data-category="hanoi" data-id="hanoi-pho" data-name="Суп Фо Бо" data-price="189" data-img="hanoi_pho.png">
+      <article class="product-card fade-in" data-category="hanoi" data-id="hanoi-pho" data-name="Суп Фо Бо" data-price="189" data-img="hanoi_pho.jpg">
         <div class="card-img-wrap">
-          <img src="hanoi_pho.png" alt="В'єтнамський суп Фо Бо" loading="lazy" />
+          <img src="hanoi_pho.jpg" alt="Суп Фо Бо" width="400" height="300" loading="lazy" decoding="async" />
           <span class="card-badge">
             <span class="ic" style="width:14px;height:14px"><svg><use href="#ic-noodles"/></svg></span>
             <span class="badge-text">Екзотика</span>
@@ -1099,3 +1102,4 @@
 
 </body>
 </html>
+
